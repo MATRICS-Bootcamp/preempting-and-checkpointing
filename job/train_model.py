@@ -11,7 +11,7 @@ import glob
 
 
 from utils import GarmentClassifier, train_one_epoch
-
+import re
 
 
 ###########################
@@ -36,8 +36,8 @@ classes = ('T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
         'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle Boot')
 
 # Report split sizes
-print('Training set has {} instances'.format(len(training_set)))
-print('Validation set has {} instances'.format(len(validation_set)))
+print('Training set has {} instances'.format(len(training_set)), flush=True)
+print('Validation set has {} instances'.format(len(validation_set)), flush=True)
 
 dataiter = iter(training_loader)
 images, labels = next(dataiter)
@@ -51,15 +51,15 @@ images, labels = next(dataiter)
 
 model = GarmentClassifier()
 epoch_number = 0
-files = glob.glob("models/*")
-files.sort()
+files = glob.glob("../models/*")
 if len(files)>0:
-    print("Saved model found!")
-    print("Loading :"+files[-1])
-    model.load_state_dict(torch.load(files[-1]))
+    print("Saved model found!", flush=True)
+    highest_model = max(files, key=lambda x: int(re.search(r'model_(\d+)', x).group(1)))
+    print("Loading :"+str(highest_model), flush=True)
+    model.load_state_dict(torch.load(highest_model))
 
-    print("Setting epoch to "+files[-1].split("_")[-1])
-    epoch_number = int(files[-1].split("_")[-1])
+    print("Setting epoch to "+highest_model.split("_")[-1], flush=True)
+    epoch_number = int(highest_model.split("_")[-1])
     
 
 loss_fn = torch.nn.CrossEntropyLoss()
@@ -70,7 +70,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
 # Initializing in a separate cell so we can easily add more epochs to the same run
 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-writer = SummaryWriter('runs/fashion_trainer_{}'.format(timestamp))
+writer = SummaryWriter('../runs/fashion_trainer_{}'.format(timestamp))
 
 
 ##############################
@@ -83,7 +83,7 @@ EPOCHS = 50
 best_vloss = 1_000_000.
 
 for epoch in range(EPOCHS):
-    print('EPOCH {}:'.format(epoch_number + 1))
+    print('EPOCH {}:'.format(epoch_number + 1), flush=True)
 
     # Make sure gradient tracking is on, and do a pass over the data
     model.train(True)
@@ -104,7 +104,7 @@ for epoch in range(EPOCHS):
             running_vloss += vloss
 
     avg_vloss = running_vloss / (i + 1)
-    print('LOSS train {} valid {}'.format(avg_loss, avg_vloss))
+    print('LOSS train {} valid {}'.format(avg_loss, avg_vloss), flush=True)
 
     # Log the running loss averaged per batch
     # for both training and validation
@@ -116,7 +116,7 @@ for epoch in range(EPOCHS):
     # Track best performance, and save the model's state
     if epoch%5==0:
         best_vloss = avg_vloss
-        model_path = 'models/model_{}'.format(epoch_number)
+        model_path = '../models/model_{}'.format(epoch_number)
         torch.save(model.state_dict(), model_path)
 
     epoch_number += 1
