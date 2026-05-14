@@ -9,4 +9,5 @@
 #SBATCH --mail-type=end                      
 #SBATCH --mail-user=bchivers@stanford.edu
 
+mkdir -p ../models/
 apptainer exec ../env/pytorch_latest.sif python3 train_model.py
